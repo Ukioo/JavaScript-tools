@@ -1,6 +1,6 @@
 # JavaScript tools
-1. type 类型判断
-//是否字符串
+# 1. type 类型判断
+`//是否字符串
 isString (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'String'
 }
@@ -174,4 +174,4 @@ checkStr (str, type) {
         
         return true
     }
-}
+}`
