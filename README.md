@@ -4,42 +4,37 @@
 isString (o) { //是否字符串
     return Object.prototype.toString.call(o).slice(8, -1) === 'String'
 }
-```
-```
 isNumber (o) { //是否数字
     return Object.prototype.toString.call(o).slice(8, -1) === 'Number'
 }
-```
-//是否对象
-isObj (o) { 
+isObj (o) { //是否对象
     return Object.prototype.toString.call(o).slice(8, -1) === 'Object'
-}
-//是否数组
-isArray (o) { 
+
+isArray (o) { //是否数组
     return Object.prototype.toString.call(o).slice(8, -1) === 'Array'
 }
-//是否时间
-isDate (o) { 
+
+isDate (o) { //是否时间
     return Object.prototype.toString.call(o).slice(8, -1) === 'Date'
 }
-//是否boolean
-isBoolean (o) { 
+
+isBoolean (o) { //是否boolean
     return Object.prototype.toString.call(o).slice(8, -1) === 'Boolean'
 }
-//是否函数
-isFunction (o) { 
+
+isFunction (o) { //是否函数
     return Object.prototype.toString.call(o).slice(8, -1) === 'Function'
 }
-//是否为null
-isNull (o) { 
+
+isNull (o) { //是否为null
     return Object.prototype.toString.call(o).slice(8, -1) === 'Null'
 }
- //是否undefined
-isUndefined (o) {
+
+isUndefined (o) { //是否undefined
     return Object.prototype.toString.call(o).slice(8, -1) === 'Undefined'
 }
-//是否ios
-isIos () {
+
+isIos () {//是否IosAndroid
     var u = navigator.userAgent;
     if (u.indexOf('Android') > -1 || u.indexOf('Linux') > -1) {//安卓手机
         // return "Android";
@@ -57,8 +52,8 @@ isIos () {
         return false
     }
 }
-//是否为PC端
-isPC () { 
+
+isPC () { //是否为PC端
     var userAgentInfo = navigator.userAgent;
     var Agents = ["Android", "iPhone",
                 "SymbianOS", "Windows Phone",
@@ -73,7 +68,7 @@ isPC () {
     return flag;
 }
 
-browserType(){
+browserType(){ //判断浏览器类型
     var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
     var isOpera = userAgent.indexOf("Opera") > -1; //判断是否Opera浏览器
     var isIE = userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !isOpera; //判断是否IE浏览器
@@ -177,3 +172,4 @@ checkStr (str, type) {
         return true
     }
 }
+```
