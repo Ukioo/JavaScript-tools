@@ -2097,3 +2097,115 @@ input[type="text"] {
     background-position: center center;
 }
 ```
+## 获取yyyy-MM-dd日期
+```
+function getNowDate() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate;
+    return currentdate;
+}
+```
+## 获取yyyy-MM日期
+```
+function getNowDatetwo() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month;
+    return currentdate;
+}
+```
+## 获取指定年月天数
+```
+function mGetDate(year, month) {
+    var d = new Date(year, month, 0);
+    return d.getDate();
+}
+```
+## 补全0
+```
+function addPreZero(num) {
+    if (num < 10) {
+        return '0' + num;
+    } else {
+        return num;
+    }
+}
+```
+## 动态加载js文件
+```
+function dynamicjs(path) {
+    if (!path || path.length === 0) {
+        throw new Error('argument "path" is required !');
+    }
+    var head = document.getElementsByTagName('head')[0];
+    var script = document.createElement('script');
+    script.src = path;
+    script.type = 'text/javascript';
+    head.appendChild(script);
+}
+```
+## 前后日期
+```
+function GetDateStr(AddDayCount) {
+    var dd = new Date();
+    dd.setDate(dd.getDate() + AddDayCount);//获取AddDayCount天后的日期 
+    var y = dd.getFullYear();
+    var m = dd.getMonth() + 1;//获取当前月份的日期 
+    var d = dd.getDate();
+    return y + "-" + m + "-" + d;
+}
+```
+## 获取地址栏信息
+```
+function GetRequest() {
+    var url = window.location.search;
+    var theRequest = {};
+    if (url.indexOf("?") != -1) {
+        var str = url.substr(1);
+        var strs = str.split("&");
+        var strs1 = strs[0].split("$");
+        for (var key in strs) {
+            if (parseInt(key) == 0) {
+                continue;
+            }
+            strs1 = strs1.concat(strs[key]);
+        }
+        for (var i = 0; i < strs1.length; i++) {
+            theRequest[strs1[i].split("=")[0]] = (strs1[i].split("=")[1]);
+        }
+    }
+    return theRequest;
+}
+```
+## 补全位数
+```
+function fillZero(number, digits) {
+    number = String(number);
+    var length = number.length;
+    if (number.length < digits) {
+        for (var i = 0; i < digits - length; i++) {
+            number = "0" + number;
+        }
+    }
+    return number;
+}
+```
