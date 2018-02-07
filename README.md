@@ -1,50 +1,42 @@
 # JavaScript tools
 1. type 类型判断
-isString (o) { //是否字符串
+//是否字符串
+isString (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'String'
 }
-
-isNumber (o) { //是否数字
+//是否数字
+isNumber (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Number'
 }
-
-isObj (o) { //是否对象
+//是否对象
+isObj (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Object'
 }
-
-isArray (o) { //是否数组
+//是否数组
+isArray (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Array'
 }
-
-isDate (o) { //是否时间
+//是否时间
+isDate (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Date'
 }
-
-isBoolean (o) { //是否boolean
+//是否boolean
+isBoolean (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Boolean'
 }
-
-isFunction (o) { //是否函数
+//是否函数
+isFunction (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Function'
 }
-
-isNull (o) { //是否为null
+//是否为null
+isNull (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Null'
 }
-
-isUndefined (o) { //是否undefined
+ //是否undefined
+isUndefined (o) {
     return Object.prototype.toString.call(o).slice(8, -1) === 'Undefined'
 }
-
-isFalse (o) {
-    if (!o || o === 'null' || o === 'undefined' || o === 'false' || o === 'NaN') return true
-        return false
-}
-
-isTrue (o) {
-    return !this.isFalse(o)
-}
-
+//是否ios
 isIos () {
     var u = navigator.userAgent;
     if (u.indexOf('Android') > -1 || u.indexOf('Linux') > -1) {//安卓手机
@@ -63,8 +55,8 @@ isIos () {
         return false
     }
 }
-
-isPC () { //是否为PC端
+//是否为PC端
+isPC () { 
     var userAgentInfo = navigator.userAgent;
     var Agents = ["Android", "iPhone",
                 "SymbianOS", "Windows Phone",
