@@ -172,3 +172,1928 @@ isCardID(sId) { // 严格的身份证校验，谢谢楼下兄弟提供更加详�
     return true
 }
 ```
+## 2. Date
+```
+/**
+ * 格式化时间
+ * 
+ * @param  {time} 时间
+ * @param  {cFormat} 格式
+ * @return {String} 字符串
+ *
+ * @example formatTime('2018-1-29', '{y}/{m}/{d} {h}:{i}:{s}') // -> 2018/01/29 00:00:00
+ */
+formatTime(time, cFormat) {
+    if (arguments.length === 0) return null
+    if ((time + '').length === 10) {
+        time = +time * 1000
+    }
+
+    var format = cFormat || '{y}-{m}-{d} {h}:{i}:{s}', date
+    if (typeof time === 'object') {
+        date = time
+    } else {
+        date = new Date(time)
+    }
+
+    var formatObj = {
+        y: date.getFullYear(),
+        m: date.getMonth() + 1,
+        d: date.getDate(),
+        h: date.getHours(),
+        i: date.getMinutes(),
+        s: date.getSeconds(),
+        a: date.getDay()
+    }
+    var time_str = format.replace(/{(y|m|d|h|i|s|a)+}/g, (result, key) => {
+        var value = formatObj[key]
+        if (key === 'a') return ['一', '二', '三', '四', '五', '六', '日'][value - 1]
+        if (result.length > 0 && value < 10) {
+            value = '0' + value
+        }
+        return value || 0
+    })
+    return time_str
+}
+
+
+/**
+ * 返回指定长度的月份集合
+ * 
+ * @param  {time} 时间
+ * @param  {len} 长度
+ * @param  {direction} 方向：  1: 前几个月;  2: 后几个月;  3:前后几个月  默认 3
+ * @return {Array} 数组
+ * 
+ * @example   getMonths('2018-1-29', 6, 1)  // ->  ["2018-1", "2017-12", "2017-11", "2017-10", "2017-9", "2017-8", "2017-7"]
+ */
+getMonths(time, len, direction) {
+    var mm = new Date(time).getMonth(),
+        yy = new Date(time).getFullYear(),
+        direction = isNaN(direction) ? 3 : direction,
+        index = mm;
+    var cutMonth = function(index) {
+        if ( index <= len && index >= -len) {
+            return direction === 1 ? formatPre(index).concat(cutMonth(++index)):
+                direction === 2 ? formatNext(index).concat(cutMonth(++index)):formatCurr(index).concat(cutMonth(++index))
+        }
+        return []
+    }
+    var formatNext = function(i) {
+        var y = Math.floor(i/12),
+            m = i%12
+        return [yy+y + '-' + (m+1)]
+    }
+    var formatPre = function(i) {
+        var y = Math.ceil(i/12),
+            m = i%12
+        m = m===0 ? 12 : m
+        return [yy-y + '-' + (13 - m)]
+    }
+    var formatCurr = function(i) {
+        var y = Math.floor(i/12),
+            yNext = Math.ceil(i/12),
+            m = i%12,
+            mNext = m===0 ? 12 : m
+        return [yy-yNext + '-' + (13 - mNext),yy+y + '-' + (m+1)]
+    }
+    // 数组去重
+    var unique = function(arr) {
+        if ( Array.hasOwnProperty('from') ) {
+            return Array.from(new Set(arr));
+        }else{
+            var n = {},r=[]; 
+            for(var i = 0; i < arr.length; i++){
+                if (!n[arr[i]]){
+                    n[arr[i]] = true; 
+                    r.push(arr[i]);
+                }
+            }
+            return r;
+        }
+    }
+    return direction !== 3 ? cutMonth(index) : unique(cutMonth(index).sort(function(t1, t2){
+        return new Date(t1).getTime() - new Date(t2).getTime()
+    }))
+}
+
+
+
+/**
+ * 返回指定长度的天数集合
+ * 
+ * @param  {time} 时间
+ * @param  {len} 长度
+ * @param  {direction} 方向： 1: 前几天;  2: 后几天;  3:前后几天  默认 3
+ * @return {Array} 数组
+ *
+ * @example date.getDays('2018-1-29', 6) // -> ["2018-1-26", "2018-1-27", "2018-1-28", "2018-1-29", "2018-1-30", "2018-1-31", "2018-2-1"]
+ */
+getDays(time, len, diretion) {
+    var tt = new Date(time)
+    var getDay = function(day) {
+        var t = new Date(time)
+        t.setDate(t.getDate() + day)
+        var m = t.getMonth()+1
+        return t.getFullYear()+'-'+m+'-'+t.getDate()
+    }
+    var arr = []
+    if (diretion === 1) {
+        for (var i = 1; i <= len; i++) {
+            arr.unshift(getDay(-i))
+        }
+    }else if(diretion === 2) {
+        for (var i = 1; i <= len; i++) {
+            arr.push(getDay(i))
+        }
+    }else {
+        for (var i = 1; i <= len; i++) {
+            arr.unshift(getDay(-i))
+        }
+        arr.push(tt.getFullYear()+'-'+(tt.getMonth()+1)+'-'+tt.getDate())
+        for (var i = 1; i <= len; i++) {
+            arr.push(getDay(i))
+        }
+    }
+    return diretion === 1 ? arr.concat([tt.getFullYear()+'-'+(tt.getMonth()+1)+'-'+tt.getDate()]) : 
+        diretion === 2 ? [tt.getFullYear()+'-'+(tt.getMonth()+1)+'-'+tt.getDate()].concat(arr) : arr
+}
+
+
+/**
+ * @param  {s} 秒数
+ * @return {String} 字符串 
+ *
+ * @example formatHMS(3610) // -> 1h0m10s
+ */
+formatHMS (s) {
+    var str = ''
+    if (s > 3600) {
+        str = Math.floor(s/3600)+'h'+Math.floor(s%3600/60)+'m'+s%60+'s'
+    }else if(s > 60) {
+        str = Math.floor(s/60)+'m'+s%60+'s'
+    }else{
+        str = s%60+'s'
+    }
+    return str
+}
+
+/*获取某月有多少天*/
+getMonthOfDay (time) {
+    var date = new Date(time)
+    var year = date.getFullYear()
+    var mouth = date.getMonth() + 1
+    var days
+
+    //当月份为二月时，根据闰年还是非闰年判断天数
+    if (mouth == 2) {
+        days = (year%4==0 && year%100==0 && year%400==0) || (year%4==0 && year%100!=0) ? 28 : 29
+    } else if (mouth == 1 || mouth == 3 || mouth == 5 || mouth == 7 || mouth == 8 || mouth == 10 || mouth == 12) {
+        //月份为：1,3,5,7,8,10,12 时，为大月.则天数为31；
+        days = 31
+    } else {
+        //其他月份，天数为：30.
+        days = 30
+    }
+    return days
+}
+
+/*获取某年有多少天*/
+getYearOfDay (time) {
+    var firstDayYear = this.getFirstDayOfYear(time);
+    var lastDayYear = this.getLastDayOfYear(time);
+    var numSecond = (new Date(lastDayYear).getTime() - new Date(firstDayYear).getTime())/1000;
+    return Math.ceil(numSecond/(24*3600));
+}
+
+/*获取某年的第一天*/
+getFirstDayOfYear (time) {
+    var year = new Date(time).getFullYear();
+    return year + "-01-01 00:00:00";
+}
+
+/*获取某年最后一天*/
+getLastDayOfYear (time) {
+    var year = new Date(time).getFullYear();
+    var dateString = year + "-12-01 00:00:00";
+    var endDay = this.getMonthOfDay(dateString);
+    return year + "-12-" + endDay + " 23:59:59";
+}
+
+/*获取某个日期是当年中的第几天*/
+getDayOfYear (time) {
+    var firstDayYear = this.getFirstDayOfYear(time);
+    var numSecond = (new Date(time).getTime() - new Date(firstDayYear).getTime())/1000;
+    return Math.ceil(numSecond/(24*3600));
+}
+
+/*获取某个日期在这一年的第几周*/
+getDayOfYearWeek (time) {
+    var numdays = this.getDayOfYear(time);
+    return Math.ceil(numdays / 7);
+}
+```
+##3. Array
+```
+/*判断一个元素是否在数组中*/
+contains (arr, val) {
+    return arr.indexOf(val) != -1 ? true : false;
+}
+
+
+/**
+ * @param  {arr} 数组
+ * @param  {fn} 回调函数
+ * @return {undefined}
+ */
+each (arr, fn) {
+    fn = fn || Function;
+    var a = [];
+    var args = Array.prototype.slice.call(arguments, 1);
+    for(var i = 0; i < arr.length; i++) {
+        var res = fn.apply(arr, [arr[i], i].concat(args));
+        if(res != null) a.push(res);
+    }
+}
+
+/**
+ * @param  {arr} 数组
+ * @param  {fn} 回调函数
+ * @param  {thisObj} this指向
+ * @return {Array} 
+ */
+map (arr, fn, thisObj) {
+    var scope = thisObj || window;
+    var a = [];
+    for(var i = 0, j = arr.length; i < j; ++i) {
+        var res = fn.call(scope, arr[i], i, this);
+        if(res != null) a.push(res);
+    }
+    return a;
+}
+
+
+/**
+ * @param  {arr} 数组
+ * @param  {type} 1：从小到大   2：从大到小   3：随机
+ * @return {Array}
+ */
+sort (arr, type = 1) {
+    return arr.sort( (a, b) => {
+        switch(type) {
+            case 1:
+                return a - b;
+            case 2:
+                return b - a;
+            case 3:
+                return Math.random() - 0.5;
+            default:
+                return arr;
+        }
+    })
+}
+
+/*去重*/
+unique (arr) {
+    if ( Array.hasOwnProperty('from') ) {
+        return Array.from(new Set(arr));
+    }else{
+        var n = {},r=[]; 
+        for(var i = 0; i < arr.length; i++){
+            if (!n[arr[i]]){
+                n[arr[i]] = true; 
+                r.push(arr[i]);
+            }
+        }
+        return r;
+    }
+    // 注：上面 else 里面的排重并不能区分 2 和 '2'，但能减少用indexOf带来的性能,暂时没找到替代的方法。。。
+    /* 正确排重
+    if ( Array.hasOwnProperty('from') ) {
+        return Array.from(new Set(arr))
+    }else{
+        var r = [], NaNBol = true
+        for(var i=0; i < arr.length; i++) {
+            if (arr[i] !== arr[i]) {
+                if (NaNBol && r.indexOf(arr[i]) === -1) {
+                    r.push(arr[i])
+                    NaNBol = false
+                }
+            }else{
+                if(r.indexOf(arr[i]) === -1) r.push(arr[i])
+            }
+        }
+        return r
+    }
+
+     */
+}
+
+
+/*求两个集合的并集*/
+union (a, b) {
+    var newArr = a.concat(b);
+    return this.unique(newArr);
+}
+
+/*求两个集合的交集*/
+intersect (a, b) {
+    var _this = this;
+    a = this.unique(a);
+    return this.map(a, function(o) {
+        return _this.contains(b, o) ? o : null;
+    });
+}
+
+/*删除其中一个元素*/
+remove (arr, ele) {
+    var index = arr.indexOf(ele);
+    if(index > -1) {
+        arr.splice(index, 1);
+    }
+    return arr;
+}
+
+/*将类数组转换为数组的方法*/
+formArray (ary) {
+    var arr = [];
+    if(Array.isArray(ary)) {
+        arr = ary;
+    } else {
+        arr = Array.prototype.slice.call(ary);
+    };
+    return arr;
+}
+
+/*最大值*/
+max (arr) {
+    return Math.max.apply(null, arr);
+}
+
+/*最小值*/
+min (arr) {
+    return Math.min.apply(null, arr);
+}
+
+/*求和*/
+sum (arr) {
+    return arr.reduce( (pre, cur) => {
+        return pre + cur
+    })
+}
+
+/*平均值*/
+average (arr) {
+    return this.sum(arr)/arr.length
+}
+```
+##4. String 字符串操作
+```
+/**
+ * 去除空格
+ * @param  {str}
+ * @param  {type} 
+ *       type:  1-所有空格  2-前后空格  3-前空格 4-后空格
+ * @return {String}
+ */
+trim (str, type) {
+    type = type || 1
+    switch (type) {
+        case 1:
+            return str.replace(/\s+/g, "");
+        case 2:
+            return str.replace(/(^\s*)|(\s*$)/g, "");
+        case 3:
+            return str.replace(/(^\s*)/g, "");
+        case 4:
+            return str.replace(/(\s*$)/g, "");
+        default:
+            return str;
+    }
+}
+
+/**
+ * @param  {str} 
+ * @param  {type}
+ *       type:  1:首字母大写  2：首页母小写  3：大小写转换  4：全部大写  5：全部小写
+ * @return {String}
+ */
+changeCase (str, type) {
+    type = type || 4
+    switch (type) {
+        case 1:
+            return str.replace(/\b\w+\b/g, function (word) {
+                return word.substring(0, 1).toUpperCase() + word.substring(1).toLowerCase();
+
+            });
+        case 2:
+            return str.replace(/\b\w+\b/g, function (word) {
+                return word.substring(0, 1).toLowerCase() + word.substring(1).toUpperCase();
+            });
+        case 3:
+            return str.split('').map( function(word){
+                if (/[a-z]/.test(word)) {
+                    return word.toUpperCase();
+                }else{
+                    return word.toLowerCase()
+                }
+            }).join('')
+        case 4:
+            return str.toUpperCase();
+        case 5:
+            return str.toLowerCase();
+        default:
+            return str;
+    }
+}
+
+
+/*
+    检测密码强度
+*/
+checkPwd (str) {
+    var Lv = 0;
+    if (str.length < 6) {
+        return Lv
+    }
+    if (/[0-9]/.test(str)) {
+        Lv++
+    }
+    if (/[a-z]/.test(str)) {
+        Lv++
+    }
+    if (/[A-Z]/.test(str)) {
+        Lv++
+    }
+    if (/[\.|-|_]/.test(str)) {
+        Lv++
+    }
+    return Lv;
+}
+
+/*过滤html代码(把<>转换)*/
+filterTag (str) {
+    str = str.replace(/&/ig, "&amp;");
+    str = str.replace(/</ig, "&lt;");
+    str = str.replace(/>/ig, "&gt;");
+    str = str.replace(" ", "&nbsp;");
+    return str;
+}
+```
+##5. Number
+```
+/*随机数范围*/
+random (min, max) {
+    if (arguments.length === 2) {
+        return Math.floor(min + Math.random() * ( (max+1) - min ))
+    }else{
+        return null;
+    }
+    
+}
+
+/*将阿拉伯数字翻译成中文的大写数字*/
+numberToChinese (num) {
+    var AA = new Array("零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十");
+    var BB = new Array("", "十", "百", "仟", "萬", "億", "点", "");
+    var a = ("" + num).replace(/(^0*)/g, "").split("."),
+        k = 0,
+        re = "";
+    for(var i = a[0].length - 1; i >= 0; i--) {
+        switch(k) {
+            case 0:
+                re = BB[7] + re;
+                break;
+            case 4:
+                if(!new RegExp("0{4}//d{" + (a[0].length - i - 1) + "}$")
+                    .test(a[0]))
+                    re = BB[4] + re;
+                break;
+            case 8:
+                re = BB[5] + re;
+                BB[7] = BB[5];
+                k = 0;
+                break;
+        }
+        if(k % 4 == 2 && a[0].charAt(i + 2) != 0 && a[0].charAt(i + 1) == 0)
+            re = AA[0] + re;
+        if(a[0].charAt(i) != 0)
+            re = AA[a[0].charAt(i)] + BB[k % 4] + re;
+        k++;
+    }
+
+    if(a.length > 1) // 加上小数部分(如果有小数部分)
+    {
+        re += BB[6];
+        for(var i = 0; i < a[1].length; i++)
+            re += AA[a[1].charAt(i)];
+    }
+    if(re == '一十')
+        re = "十";
+    if(re.match(/^一/) && re.length == 3)
+        re = re.replace("一", "");
+    return re;
+}
+
+/*将数字转换为大写金额*/
+changeToChinese (Num) {
+        //判断如果传递进来的不是字符的话转换为字符
+        if(typeof Num == "number") {
+            Num = new String(Num);
+        };
+        Num = Num.replace(/,/g, "") //替换tomoney()中的“,”
+        Num = Num.replace(/ /g, "") //替换tomoney()中的空格
+        Num = Num.replace(/￥/g, "") //替换掉可能出现的￥字符
+        if(isNaN(Num)) { //验证输入的字符是否为数字
+            //alert("请检查小写金额是否正确");
+            return "";
+        };
+        //字符处理完毕后开始转换，采用前后两部分分别转换
+        var part = String(Num).split(".");
+        var newchar = "";
+        //小数点前进行转化
+        for(var i = part[0].length - 1; i >= 0; i--) {
+            if(part[0].length > 10) {
+                return "";
+                //若数量超过拾亿单位，提示
+            }
+            var tmpnewchar = ""
+            var perchar = part[0].charAt(i);
+            switch(perchar) {
+                case "0":
+                    tmpnewchar = "零" + tmpnewchar;
+                    break;
+                case "1":
+                    tmpnewchar = "壹" + tmpnewchar;
+                    break;
+                case "2":
+                    tmpnewchar = "贰" + tmpnewchar;
+                    break;
+                case "3":
+                    tmpnewchar = "叁" + tmpnewchar;
+                    break;
+                case "4":
+                    tmpnewchar = "肆" + tmpnewchar;
+                    break;
+                case "5":
+                    tmpnewchar = "伍" + tmpnewchar;
+                    break;
+                case "6":
+                    tmpnewchar = "陆" + tmpnewchar;
+                    break;
+                case "7":
+                    tmpnewchar = "柒" + tmpnewchar;
+                    break;
+                case "8":
+                    tmpnewchar = "捌" + tmpnewchar;
+                    break;
+                case "9":
+                    tmpnewchar = "玖" + tmpnewchar;
+                    break;
+            }
+            switch(part[0].length - i - 1) {
+                case 0:
+                    tmpnewchar = tmpnewchar + "元";
+                    break;
+                case 1:
+                    if(perchar != 0) tmpnewchar = tmpnewchar + "拾";
+                    break;
+                case 2:
+                    if(perchar != 0) tmpnewchar = tmpnewchar + "佰";
+                    break;
+                case 3:
+                    if(perchar != 0) tmpnewchar = tmpnewchar + "仟";
+                    break;
+                case 4:
+                    tmpnewchar = tmpnewchar + "万";
+                    break;
+                case 5:
+                    if(perchar != 0) tmpnewchar = tmpnewchar + "拾";
+                    break;
+                case 6:
+                    if(perchar != 0) tmpnewchar = tmpnewchar + "佰";
+                    break;
+                case 7:
+                    if(perchar != 0) tmpnewchar = tmpnewchar + "仟";
+                    break;
+                case 8:
+                    tmpnewchar = tmpnewchar + "亿";
+                    break;
+                case 9:
+                    tmpnewchar = tmpnewchar + "拾";
+                    break;
+            }
+            var newchar = tmpnewchar + newchar;
+        }
+        //小数点之后进行转化
+        if(Num.indexOf(".") != -1) {
+            if(part[1].length > 2) {
+                // alert("小数点之后只能保留两位,系统将自动截断");
+                part[1] = part[1].substr(0, 2)
+            }
+            for(i = 0; i < part[1].length; i++) {
+                tmpnewchar = ""
+                perchar = part[1].charAt(i)
+                switch(perchar) {
+                    case "0":
+                        tmpnewchar = "零" + tmpnewchar;
+                        break;
+                    case "1":
+                        tmpnewchar = "壹" + tmpnewchar;
+                        break;
+                    case "2":
+                        tmpnewchar = "贰" + tmpnewchar;
+                        break;
+                    case "3":
+                        tmpnewchar = "叁" + tmpnewchar;
+                        break;
+                    case "4":
+                        tmpnewchar = "肆" + tmpnewchar;
+                        break;
+                    case "5":
+                        tmpnewchar = "伍" + tmpnewchar;
+                        break;
+                    case "6":
+                        tmpnewchar = "陆" + tmpnewchar;
+                        break;
+                    case "7":
+                        tmpnewchar = "柒" + tmpnewchar;
+                        break;
+                    case "8":
+                        tmpnewchar = "捌" + tmpnewchar;
+                        break;
+                    case "9":
+                        tmpnewchar = "玖" + tmpnewchar;
+                        break;
+                }
+                if(i == 0) tmpnewchar = tmpnewchar + "角";
+                if(i == 1) tmpnewchar = tmpnewchar + "分";
+                newchar = newchar + tmpnewchar;
+            }
+        }
+        //替换所有无用汉字
+        while(newchar.search("零零") != -1)
+            newchar = newchar.replace("零零", "零");
+        newchar = newchar.replace("零亿", "亿");
+        newchar = newchar.replace("亿万", "亿");
+        newchar = newchar.replace("零万", "万");
+        newchar = newchar.replace("零元", "元");
+        newchar = newchar.replace("零角", "");
+        newchar = newchar.replace("零分", "");
+        if(newchar.charAt(newchar.length - 1) == "元") {
+            newchar = newchar + "整"
+        }
+        return newchar;
+    }
+```
+##6. Http
+```
+/**
+ * @param  {setting}
+ */
+ajax(setting){
+    //设置参数的初始值
+    var opts={
+        method: (setting.method || "GET").toUpperCase(), //请求方式
+        url: setting.url || "", // 请求地址
+        async: setting.async || true, // 是否异步
+        dataType: setting.dataType || "json", // 解析方式
+        data: setting.data || "", // 参数
+        success: setting.success || function(){}, // 请求成功回调
+        error: setting.error || function(){} // 请求失败回调
+    }
+
+    // 参数格式化
+    function params_format (obj) {
+        var str = ''
+        for (var i in obj) {
+            str += i + '=' + obj[i] + '&'
+        }
+        return str.split('').slice(0, -1).join('')
+    }
+
+    // 创建ajax对象
+    var xhr=new XMLHttpRequest();
+
+    // 连接服务器open(方法GET/POST，请求地址， 异步传输)
+    if(opts.method == 'GET'){
+        xhr.open(opts.method, opts.url + "?" + params_format(opts.data), opts.async);
+        xhr.send();
+    }else{
+        xhr.open(opts.method, opts.url, opts.async);
+        xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+        xhr.send(opts.data);
+    }
+    
+    /*
+    ** 每当readyState改变时，就会触发onreadystatechange事件
+    ** readyState属性存储有XMLHttpRequest的状态信息
+    ** 0 ：请求未初始化
+    ** 1 ：服务器连接已建立
+    ** 2 ：请求已接受
+    ** 3 : 请求处理中
+    ** 4 ：请求已完成，且相应就绪
+    */
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && (xhr.status === 200 || xhr.status === 304)) {
+            switch(opts.dataType){
+                case "json":
+                    var json = JSON.parse(xhr.responseText);
+                    opts.success(json);
+                    break;
+                case "xml":
+                    opts.success(xhr.responseXML);
+                    break;
+                default:
+                    opts.success(xhr.responseText);
+                    break;
+            }
+        }
+    }
+
+    xhr.onerror = function(err) {
+        opts.error(err);
+    }
+}
+
+/**
+ * @param  {url}
+ * @param  {setting}
+ * @return {Promise}
+ */
+fetch(url, setting) {
+    //设置参数的初始值
+    let opts={
+        method: (setting.method || 'GET').toUpperCase(), //请求方式
+        headers : setting.headers  || {}, // 请求头设置
+        credentials : setting.credentials  || true, // 设置cookie是否一起发送
+        body: setting.body || {},
+        mode : setting.mode  || 'no-cors', // 可以设置 cors, no-cors, same-origin
+        redirect : setting.redirect  || 'follow', // follow, error, manual
+        cache : setting.cache  || 'default' // 设置 cache 模式 (default, reload, no-cache)
+    }
+    let dataType = setting.dataType || "json", // 解析方式  
+        data = setting.data || "" // 参数
+
+    // 参数格式化
+    function params_format (obj) {
+        var str = ''
+        for (var i in obj) {
+            str += `${i}=${obj[i]}&`
+        }
+        return str.split('').slice(0, -1).join('')
+    }
+
+    if (opts.method === 'GET') {
+        url = url + (data?`?${params_format(data)}`:'')
+    }else{
+        setting.body = data || {}
+    }
+
+    return new Promise( (resolve, reject) => {
+        fetch(url, opts).then( async res => {
+            let data = dataType === 'text' ? await res.text() :
+                dataType === 'blob' ? await res.blob() : await res.json() 
+            resolve(data)
+        }).catch( e => {
+            reject(e)
+        })
+    })
+    
+}
+```
+##7. DOM
+```
+$ (selector){ 
+    var type = selector.substring(0, 1);
+    if (type === '#') {
+        if (document.querySelecotor) return document.querySelector(selector)
+            return document.getElementById(selector.substring(1))
+        
+    }else if (type === '.') {
+        if (document.querySelecotorAll) return document.querySelectorAll(selector)
+            return document.getElementsByClassName(selector.substring(1))
+    }else{
+        return document['querySelectorAll' ? 'querySelectorAll':'getElementsByTagName'](selector)
+    }
+} 
+
+/*检测类名*/
+hasClass (ele, name) {
+    return ele.className.match(new RegExp('(\\s|^)' + name + '(\\s|$)'));
+}
+
+/*添加类名*/
+addClass (ele, name) {
+    if (!this.hasClass(ele, name)) ele.className += " " + name;
+}
+
+/*删除类名*/
+removeClass (ele, name) {
+    if (this.hasClass(ele, name)) {
+        var reg = new RegExp('(\\s|^)' + name + '(\\s|$)');
+        ele.className = ele.className.replace(reg, '');
+    }
+}
+
+/*替换类名*/
+replaceClass (ele, newName, oldName) {
+    this.removeClass(ele, oldName);
+    this.addClass(ele, newName);
+}
+
+/*获取兄弟节点*/
+siblings (ele) {
+    console.log(ele.parentNode)
+    var chid = ele.parentNode.children,eleMatch = []; 
+    for(var i = 0, len = chid.length; i < len; i ++){ 
+        if(chid[i] != ele){ 
+            eleMatch.push(chid[i]); 
+        } 
+    } 
+    return eleMatch;
+}
+
+/*获取行间样式属性*/
+getByStyle (obj,name){
+    if(obj.currentStyle){
+        return  obj.currentStyle[name];
+    }else{
+        return  getComputedStyle(obj,false)[name];
+    }
+}
+```
+##8. Storage 储存操作
+```
+class StorageFn {
+    constructor () {
+        this.ls = window.localStorage;
+        this.ss = window.sessionStorage;
+    }
+
+    /*-----------------cookie---------------------*/
+    /*设置cookie*/
+    setCookie (name, value, day) {
+        var setting = arguments[0];
+        if (Object.prototype.toString.call(setting).slice(8, -1) === 'Object'){
+            for (var i in setting) {
+                var oDate = new Date();
+                oDate.setDate(oDate.getDate() + day);
+                document.cookie = i + '=' + setting[i] + ';expires=' + oDate;
+            }
+        }else{
+            var oDate = new Date();
+            oDate.setDate(oDate.getDate() + day);
+            document.cookie = name + '=' + value + ';expires=' + oDate;
+        }
+        
+    }
+
+    /*获取cookie*/
+    getCookie (name) {
+        var arr = document.cookie.split('; ');
+        for (var i = 0; i < arr.length; i++) {
+            var arr2 = arr[i].split('=');
+            if (arr2[0] == name) {
+                return arr2[1];
+            }
+        }
+        return '';
+    }
+
+    /*删除cookie*/
+    removeCookie (name) {
+        this.setCookie(name, 1, -1);
+    }
+
+
+    /*-----------------localStorage---------------------*/
+    /*设置localStorage*/
+    setLocal(key, val) {
+        var setting = arguments[0];
+        if (Object.prototype.toString.call(setting).slice(8, -1) === 'Object'){
+            for(var i in setting){
+                this.ls.setItem(i, JSON.stringify(setting[i]))
+            }
+        }else{
+            this.ls.setItem(key, JSON.stringify(val))
+        }
+        
+    }
+
+    /*获取localStorage*/
+    getLocal(key) {
+        if (key) return JSON.parse(this.ls.getItem(key))
+        return null;
+        
+    }
+
+    /*移除localStorage*/
+    removeLocal(key) {
+        this.ls.removeItem(key)
+    }
+
+    /*移除所有localStorage*/
+    clearLocal() {
+        this.ls.clear()
+    }
+
+
+    /*-----------------sessionStorage---------------------*/
+    /*设置sessionStorage*/
+    setSession(key, val) {
+        var setting = arguments[0];
+        if (Object.prototype.toString.call(setting).slice(8, -1) === 'Object'){
+            for(var i in setting){
+                this.ss.setItem(i, JSON.stringify(setting[i]))
+            }
+        }else{
+            this.ss.setItem(key, JSON.stringify(val))
+        }
+        
+    }
+
+    /*获取sessionStorage*/
+    getSession(key) {
+        if (key) return JSON.parse(this.ss.getItem(key))
+        return null;
+        
+    }
+
+    /*移除sessionStorage*/
+    removeSession(key) {
+        this.ss.removeItem(key)
+    }
+
+    /*移除所有sessionStorage*/
+    clearSession() {
+        this.ss.clear()
+    }   
+}
+```
+##9. Other 其它操作
+```
+/*获取网址参数*/
+getURL(name){
+    var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+    var r = decodeURI(window.location.search).substr(1).match(reg);
+    if(r!=null) return  r[2]; return null;
+}
+
+/*获取全部url参数,并转换成json对象*/
+getUrlAllParams (url) {
+    var url = url ? url : window.location.href;
+    var _pa = url.substring(url.indexOf('?') + 1),
+        _arrS = _pa.split('&'),
+        _rs = {};
+    for (var i = 0, _len = _arrS.length; i < _len; i++) {
+        var pos = _arrS[i].indexOf('=');
+        if (pos == -1) {
+            continue;
+        }
+        var name = _arrS[i].substring(0, pos),
+            value = window.decodeURIComponent(_arrS[i].substring(pos + 1));
+        _rs[name] = value;
+    }
+    return _rs;
+}
+
+/*删除url指定参数，返回url*/
+delParamsUrl(url, name){
+    var baseUrl = url.split('?')[0] + '?';
+    var query = url.split('?')[1];
+    if (query.indexOf(name)>-1) {
+        var obj = {}
+        var arr = query.split("&");
+        for (var i = 0; i < arr.length; i++) {
+            arr[i] = arr[i].split("=");
+            obj[arr[i][0]] = arr[i][1];
+        };
+        delete obj[name];
+        var url = baseUrl + JSON.stringify(obj).replace(/[\"\{\}]/g,"").replace(/\:/g,"=").replace(/\,/g,"&");
+        return url
+    }else{
+        return url;
+    }
+}
+
+/*获取十六进制随机颜色*/
+getRandomColor () {
+    return '#' + (function(h) {
+        return new Array(7 - h.length).join("0") + h;
+    })((Math.random() * 0x1000000 << 0).toString(16));
+}
+
+/*图片加载*/
+imgLoadAll(arr,callback){
+    var arrImg = []; 
+    for (var i = 0; i < arr.length; i++) {
+        var img = new Image();
+        img.src = arr[i];
+        img.onload = function(){
+            arrImg.push(this);
+            if (arrImg.length == arr.length) {
+                callback && callback();
+            }
+        }
+    }
+}
+
+/*音频加载*/
+loadAudio(src, callback) {
+    var audio = new Audio(src);
+    audio.onloadedmetadata = callback;
+    audio.src = src;
+}
+
+/*DOM转字符串*/
+domToStirng(htmlDOM){
+    var div= document.createElement("div");
+    div.appendChild(htmlDOM);
+    return div.innerHTML
+}
+
+/*字符串转DOM*/
+stringToDom(htmlString){
+    var div= document.createElement("div");
+    div.innerHTML=htmlString;
+    return div.children[0];
+}
+
+
+/**
+ * 光标所在位置插入字符，并设置光标位置
+ * 
+ * @param {dom} 输入框
+ * @param {val} 插入的值
+ * @param {posLen} 光标位置处在 插入的值的哪个位置
+ */
+setCursorPosition (dom,val,posLen) {
+    var cursorPosition = 0;
+    if(dom.selectionStart){
+        cursorPosition = dom.selectionStart;
+    }
+    this.insertAtCursor(dom,val);
+    dom.focus();
+    console.log(posLen)
+    dom.setSelectionRange(dom.value.length,cursorPosition + (posLen || val.length));
+}
+
+/*光标所在位置插入字符*/
+insertAtCursor(dom, val) {
+    if (document.selection){
+        dom.focus();
+        sel = document.selection.createRange();
+        sel.text = val;
+        sel.select();
+    }else if (dom.selectionStart || dom.selectionStart == '0'){
+        let startPos = dom.selectionStart;
+        let endPos = dom.selectionEnd;
+        let restoreTop = dom.scrollTop;
+        dom.value = dom.value.substring(0, startPos) + val + dom.value.substring(endPos, dom.value.length);
+        if (restoreTop > 0){
+            dom.scrollTop = restoreTop;
+        }
+        dom.focus();
+        dom.selectionStart = startPos + val.length;
+        dom.selectionEnd = startPos + val.length;
+    } else {
+        dom.value += val;
+        dom.focus();
+    }
+}
+```
+#CSS
+##1. pc-reset PC样式初始化
+```
+/* normalize.css */
+
+html {
+  line-height: 1.15;
+  /* 1 */
+  -ms-text-size-adjust: 100%;
+  /* 2 */
+  -webkit-text-size-adjust: 100%;
+  /* 2 */
+}
+
+body {
+  margin: 0;
+}
+
+article,
+aside,
+footer,
+header,
+nav,
+section {
+  display: block;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+figcaption,
+figure,
+main {
+  /* 1 */
+  display: block;
+}
+
+figure {
+  margin: 1em 40px;
+}
+
+hr {
+  box-sizing: content-box;
+  /* 1 */
+  height: 0;
+  /* 1 */
+  overflow: visible;
+  /* 2 */
+}
+
+pre {
+  font-family: monospace, monospace;
+  /* 1 */
+  font-size: 1em;
+  /* 2 */
+}
+
+a {
+  background-color: transparent;
+  /* 1 */
+  -webkit-text-decoration-skip: objects;
+  /* 2 */
+}
+
+abbr[title] {
+  border-bottom: none;
+  /* 1 */
+  text-decoration: underline;
+  /* 2 */
+  text-decoration: underline dotted;
+  /* 2 */
+}
+
+b,
+strong {
+  font-weight: inherit;
+}
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+code,
+kbd,
+samp {
+  font-family: monospace, monospace;
+  /* 1 */
+  font-size: 1em;
+  /* 2 */
+}
+
+dfn {
+  font-style: italic;
+}
+
+mark {
+  background-color: #ff0;
+  color: #000;
+}
+
+small {
+  font-size: 80%;
+}
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+audio,
+video {
+  display: inline-block;
+}
+
+audio:not([controls]) {
+  display: none;
+  height: 0;
+}
+
+img {
+  border-style: none;
+}
+
+svg:not(:root) {
+  overflow: hidden;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: sans-serif;
+  /* 1 */
+  font-size: 100%;
+  /* 1 */
+  line-height: 1.15;
+  /* 1 */
+  margin: 0;
+  /* 2 */
+}
+
+button,
+input {
+  /* 1 */
+  overflow: visible;
+}
+
+button,
+select {
+  /* 1 */
+  text-transform: none;
+}
+
+button,
+html [type="button"],
+
+/* 1 */
+
+[type="reset"],
+[type="submit"] {
+  -webkit-appearance: button;
+  /* 2 */
+}
+
+button::-moz-focus-inner,
+[type="button"]::-moz-focus-inner,
+[type="reset"]::-moz-focus-inner,
+[type="submit"]::-moz-focus-inner {
+  border-style: none;
+  padding: 0;
+}
+
+button:-moz-focusring,
+[type="button"]:-moz-focusring,
+[type="reset"]:-moz-focusring,
+[type="submit"]:-moz-focusring {
+  outline: 1px dotted ButtonText;
+}
+
+fieldset {
+  padding: 0.35em 0.75em 0.625em;
+}
+
+legend {
+  box-sizing: border-box;
+  /* 1 */
+  color: inherit;
+  /* 2 */
+  display: table;
+  /* 1 */
+  max-width: 100%;
+  /* 1 */
+  padding: 0;
+  /* 3 */
+  white-space: normal;
+  /* 1 */
+}
+
+progress {
+  display: inline-block;
+  /* 1 */
+  vertical-align: baseline;
+  /* 2 */
+}
+
+textarea {
+  overflow: auto;
+}
+
+[type="checkbox"],
+[type="radio"] {
+  box-sizing: border-box;
+  /* 1 */
+  padding: 0;
+  /* 2 */
+}
+
+[type="number"]::-webkit-inner-spin-button,
+[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+
+[type="search"] {
+  -webkit-appearance: textfield;
+  /* 1 */
+  outline-offset: -2px;
+  /* 2 */
+}
+
+[type="search"]::-webkit-search-cancel-button,
+[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+ ::-webkit-file-upload-button {
+  -webkit-appearance: button;
+  /* 1 */
+  font: inherit;
+  /* 2 */
+}
+
+details,
+
+/* 1 */
+
+menu {
+  display: block;
+}
+
+summary {
+  display: list-item;
+}
+
+canvas {
+  display: inline-block;
+}
+
+template {
+  display: none;
+}
+
+[hidden] {
+  display: none;
+}
+
+
+/* reset */
+
+html,
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+p,
+blockquote,
+pre,
+hr,
+figure,
+table,
+caption,
+th,
+td,
+form,
+fieldset,
+legend,
+input,
+button,
+textarea,
+menu {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+```
+##2. Phone-reset
+```
+/* normalize.css */
+
+html {
+  line-height: 1.15;
+  /* 1 */
+  -ms-text-size-adjust: 100%;
+  /* 2 */
+  -webkit-text-size-adjust: 100%;
+  /* 2 */
+}
+
+body {
+  margin: 0;
+}
+
+article,
+aside,
+footer,
+header,
+nav,
+section {
+  display: block;
+}
+
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+figcaption,
+figure,
+main {
+  /* 1 */
+  display: block;
+}
+
+figure {
+  margin: 1em 40px;
+}
+
+hr {
+  box-sizing: content-box;
+  /* 1 */
+  height: 0;
+  /* 1 */
+  overflow: visible;
+  /* 2 */
+}
+
+pre {
+  font-family: monospace, monospace;
+  /* 1 */
+  font-size: 1em;
+  /* 2 */
+}
+
+a {
+  background-color: transparent;
+  /* 1 */
+  -webkit-text-decoration-skip: objects;
+  /* 2 */
+}
+
+abbr[title] {
+  border-bottom: none;
+  /* 1 */
+  text-decoration: underline;
+  /* 2 */
+  text-decoration: underline dotted;
+  /* 2 */
+}
+
+b,
+strong {
+  font-weight: inherit;
+}
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+code,
+kbd,
+samp {
+  font-family: monospace, monospace;
+  /* 1 */
+  font-size: 1em;
+  /* 2 */
+}
+
+dfn {
+  font-style: italic;
+}
+
+mark {
+  background-color: #ff0;
+  color: #000;
+}
+
+small {
+  font-size: 80%;
+}
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+sup {
+  top: -0.5em;
+}
+
+audio,
+video {
+  display: inline-block;
+}
+
+audio:not([controls]) {
+  display: none;
+  height: 0;
+}
+
+img {
+  border-style: none;
+}
+
+svg:not(:root) {
+  overflow: hidden;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: sans-serif;
+  /* 1 */
+  font-size: 100%;
+  /* 1 */
+  line-height: 1.15;
+  /* 1 */
+  margin: 0;
+  /* 2 */
+}
+
+button,
+input {
+  /* 1 */
+  overflow: visible;
+}
+
+button,
+select {
+  /* 1 */
+  text-transform: none;
+}
+
+button,
+html [type="button"],
+
+/* 1 */
+
+[type="reset"],
+[type="submit"] {
+  -webkit-appearance: button;
+  /* 2 */
+}
+
+button::-moz-focus-inner,
+[type="button"]::-moz-focus-inner,
+[type="reset"]::-moz-focus-inner,
+[type="submit"]::-moz-focus-inner {
+  border-style: none;
+  padding: 0;
+}
+
+button:-moz-focusring,
+[type="button"]:-moz-focusring,
+[type="reset"]:-moz-focusring,
+[type="submit"]:-moz-focusring {
+  outline: 1px dotted ButtonText;
+}
+
+fieldset {
+  padding: 0.35em 0.75em 0.625em;
+}
+
+legend {
+  box-sizing: border-box;
+  /* 1 */
+  color: inherit;
+  /* 2 */
+  display: table;
+  /* 1 */
+  max-width: 100%;
+  /* 1 */
+  padding: 0;
+  /* 3 */
+  white-space: normal;
+  /* 1 */
+}
+
+progress {
+  display: inline-block;
+  /* 1 */
+  vertical-align: baseline;
+  /* 2 */
+}
+
+textarea {
+  overflow: auto;
+}
+
+[type="checkbox"],
+[type="radio"] {
+  box-sizing: border-box;
+  /* 1 */
+  padding: 0;
+  /* 2 */
+}
+
+[type="number"]::-webkit-inner-spin-button,
+[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+
+[type="search"] {
+  -webkit-appearance: textfield;
+  /* 1 */
+  outline-offset: -2px;
+  /* 2 */
+}
+
+[type="search"]::-webkit-search-cancel-button,
+[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+ ::-webkit-file-upload-button {
+  -webkit-appearance: button;
+  /* 1 */
+  font: inherit;
+  /* 2 */
+}
+
+details,
+
+/* 1 */
+
+menu {
+  display: block;
+}
+
+summary {
+  display: list-item;
+}
+
+canvas {
+  display: inline-block;
+}
+
+template {
+  display: none;
+}
+
+[hidden] {
+  display: none;
+}
+
+
+/* reset */
+
+html,
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+div,
+dl,
+dt,
+dd,
+ul,
+ol,
+li,
+p,
+blockquote,
+pre,
+hr,
+figure,
+table,
+caption,
+th,
+td,
+form,
+fieldset,
+legend,
+input,
+button,
+textarea,
+menu {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  /* 禁止选中文本 */
+  -webkit-user-select: none;
+  user-select: none;
+  font: Oswald, 'Open Sans', Helvetica, Arial, sans-serif
+}
+
+
+/* 禁止长按链接与图片弹出菜单 */
+
+a,
+img {
+  -webkit-touch-callout: none;
+}
+
+
+/*ios android去除自带阴影的样式*/
+
+a,
+input {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+input[type="text"] {
+  -webkit-appearance: none;
+}
+```
+##3. 公共样式提取
+```
+/* 禁止选中文本 */
+.usn{
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    -o-user-select:none;
+    user-select:none;
+}
+/* 浮动 */
+.fl { float: left; }
+.fr { float: right; }
+.cf { zoom: 1; }
+.cf:after {
+    content:".";
+    display:block;
+    clear:both;
+    visibility:hidden;
+    height:0;
+    overflow:hidden;
+}
+
+/* 元素类型 */
+.db { display: block; }
+.dn { display: none; }
+.di { display: inline }
+.dib {display: inline-block;}
+.transparent { opacity: 0 }
+
+
+/*文字排版、颜色*/
+.f12 { font-size:12px }
+.f14 { font-size:14px }
+.f16 { font-size:16px }
+.f18 { font-size:18px }
+.f20 { font-size:20px }
+.fb { font-weight:bold }
+.fn { font-weight:normal }
+.t2 { text-indent:2em }
+.red,a.red { color:#cc0031 }
+.darkblue,a.darkblue { color:#039 }
+.gray,a.gray { color:#878787 }
+.lh150 { line-height:150% }
+.lh180 { line-height:180% }
+.lh200 { line-height:200% }
+.unl { text-decoration:underline; }
+.no_unl { text-decoration:none; }
+.tl { text-align: left; }
+.tc { text-align: center; }
+.tr { text-align: right; }
+.tj { text-align: justify; text-justify: inter-ideograph; }
+.wn { /* 强制不换行 */
+    word-wrap:normal;
+    white-space:nowrap;
+}
+.wb { /* 强制换行 */
+    white-space:normal;
+    word-wrap:break-word;
+    word-break:break-all;
+}
+.wp { /* 保持空白序列*/
+    overflow:hidden;text-align:left;white-space:pre-wrap;word-wrap:break-word;word-break:break-all;
+}
+.wes { /* 多出部分用省略号表示 , 用于一行 */
+    overflow:hidden;
+    word-wrap:normal;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+.wes-2 { /* 适用于webkit内核和移动端 */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+} 
+.wes-3 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}
+.wes-4 {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+}
+
+/* 溢出样式 */
+.ofh { overflow: hidden; }
+.ofs {overflow: scroll; }
+.ofa {overflow: auto; }
+.ofv {overflow: visible; }
+
+/* 定位方式 */
+.ps {position: static; }
+.pr {position: relative;zoom:1; }
+.pa {position: absolute; }
+.pf {position: fixed; }
+
+
+/* 垂直对齐方式 */
+.vt {vertical-align: top; }
+.vm {vertical-align: middle; }
+.vb {vertical-align: bottom; }
+
+
+/* 鼠标样式 */
+.csd {cursor: default; }
+.csp {cursor: pointer; }
+.csh {cursor: help; }
+.csm {cursor: move; }
+
+/* flex布局 */
+.df-sb {
+    display:flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.df-sa {
+    display:flex;
+    align-items: center;
+    justify-content: space-around;
+}
+
+/* 垂直居中 */
+.df-c {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tb-c {
+    text-align:center;
+    display:table-cell;
+    vertical-align:middle;
+}
+.ts-c {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+}
+.ts-mc {
+    position: absolute;
+    left: 0;right: 0;
+    bottom: 0; top: 0;
+    margin: auto;
+}
+
+/* 辅助 */
+.mask-fixed-wrapper {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    left:0;top:0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 999;
+}
+.bg-cover {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+.bg-cover-all {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+```
