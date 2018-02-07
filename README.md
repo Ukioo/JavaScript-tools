@@ -1,13 +1,14 @@
 # JavaScript tools
-# 1. type 类型判断
 `//是否字符串
 isString (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'String'
 }
-//是否数字
+```
+```是否数字
 isNumber (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Number'
 }
+```
 //是否对象
 isObj (o) { 
     return Object.prototype.toString.call(o).slice(8, -1) === 'Object'
@@ -175,4 +176,3 @@ checkStr (str, type) {
         return true
     }
 }
-`
