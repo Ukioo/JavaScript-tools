@@ -393,7 +393,7 @@ getDayOfYearWeek (time) {
     return Math.ceil(numdays / 7);
 }
 ```
-##3. Array
+## 3. Array
 ```
 /*判断一个元素是否在数组中*/
 contains (arr, val) {
@@ -547,7 +547,7 @@ average (arr) {
     return this.sum(arr)/arr.length
 }
 ```
-##4. String 字符串操作
+## 4. String 字符串操作
 ```
 /**
  * 去除空格
@@ -640,7 +640,7 @@ filterTag (str) {
     return str;
 }
 ```
-##5. Number
+## 5. Number
 ```
 /*随机数范围*/
 random (min, max) {
@@ -846,7 +846,7 @@ changeToChinese (Num) {
         return newchar;
     }
 ```
-##6. Http
+## 6. Http
 ```
 /**
  * @param  {setting}
@@ -962,7 +962,7 @@ fetch(url, setting) {
     
 }
 ```
-##7. DOM
+## 7. DOM
 ```
 $ (selector){ 
     var type = selector.substring(0, 1);
@@ -1023,7 +1023,7 @@ getByStyle (obj,name){
     }
 }
 ```
-##8. Storage 储存操作
+## 8. Storage 储存操作
 ```
 class StorageFn {
     constructor () {
@@ -1131,7 +1131,7 @@ class StorageFn {
     }   
 }
 ```
-##9. Other 其它操作
+## 9. Other 其它操作
 ```
 /*获取网址参数*/
 getURL(name){
@@ -1263,8 +1263,8 @@ insertAtCursor(dom, val) {
     }
 }
 ```
-#CSS
-##1. pc-reset PC样式初始化
+# CSS
+## 1. pc-reset PC样式初始化
 ```
 /* normalize.css */
 
@@ -1582,7 +1582,7 @@ menu {
   box-sizing: border-box;
 }
 ```
-##2. Phone-reset
+## 2. Phone-reset
 ```
 /* normalize.css */
 
@@ -1928,7 +1928,7 @@ input[type="text"] {
   -webkit-appearance: none;
 }
 ```
-##3. 公共样式提取
+## 3. 公共样式提取
 ```
 /* 禁止选中文本 */
 .usn{
