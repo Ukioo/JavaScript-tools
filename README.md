@@ -1,11 +1,12 @@
 # JavaScript tools
-`//是否字符串
-isString (o) { 
+## 1. type 类型判断
+```
+isString (o) { //是否字符串
     return Object.prototype.toString.call(o).slice(8, -1) === 'String'
 }
 ```
-```是否数字
-isNumber (o) { 
+```
+isNumber (o) { //是否数字
     return Object.prototype.toString.call(o).slice(8, -1) === 'Number'
 }
 ```
