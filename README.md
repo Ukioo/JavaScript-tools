@@ -174,4 +174,5 @@ checkStr (str, type) {
         
         return true
     }
-}`
+}
+`
